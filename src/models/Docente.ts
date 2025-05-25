@@ -1,0 +1,87 @@
+import { DataTypes, Model, Optional } from 'sequelize';
+import sequelize from '../config/database';
+import Veiculo from './Veiculo'; // Importar Veiculo para associação
+
+// Interface para atributos do Docente
+export interface DocenteAttributes {
+  id: number;
+  matricula: string;
+  nome: string;
+  departamento: string | null;
+  telefone: string | null;
+  email: string | null;
+  ativo: boolean;
+  data_cadastro: Date;
+}
+
+// Interface para atributos de criação (id, ativo, data_cadastro são opcionais)
+export interface DocenteCreationAttributes extends Optional<DocenteAttributes, 'id' | 'ativo' | 'data_cadastro'> {}
+
+class Docente extends Model<DocenteAttributes, DocenteCreationAttributes> implements DocenteAttributes {
+  public id!: number;
+  public matricula!: string;
+  public nome!: string;
+  public departamento!: string | null;
+  public telefone!: string | null;
+  public email!: string | null;
+  public ativo!: boolean;
+  public data_cadastro!: Date;
+
+  // Timestamps automáticos
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+
+  // Associação com Veiculo (Um Docente pode ter muitos Veículos)
+  public readonly veiculos?: Veiculo[];
+}
+
+Docente.init({
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+    field: 'docente_id', // Mapeia para o nome da coluna no SQL original
+  },
+  matricula: {
+    type: DataTypes.STRING(20),
+    allowNull: false,
+    unique: true,
+  },
+  nome: {
+    type: DataTypes.STRING(100),
+    allowNull: false,
+  },
+  departamento: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+  },
+  telefone: {
+    type: DataTypes.STRING(15),
+    allowNull: true,
+  },
+  email: {
+    type: DataTypes.STRING(100),
+    allowNull: true,
+    validate: {
+      isEmail: true,
+    },
+  },
+  ativo: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: true,
+  },
+  data_cadastro: {
+    type: DataTypes.DATEONLY, // Apenas data, sem hora
+    allowNull: false,
+    defaultValue: DataTypes.NOW, // Define a data atual no momento da criação
+  },
+}, {
+  sequelize,
+  tableName: 'Docentes',
+  timestamps: true, // Habilita createdAt e updatedAt
+  underscored: true, // Usa snake_case para colunas geradas automaticamente (createdAt, updatedAt)
+});
+
+export default Docente;
+
