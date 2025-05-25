@@ -7,25 +7,29 @@ const vagaService = new VagaService();
 export class VagaController {
 
   // Criar uma nova vaga
-  public async create(req: Request, res: Response): Promise<Response> {
+  public async create(req: Request, res: Response) {
     try {
       const vagaData: VagaCreationAttributes = req.body;
       if (!vagaData.numero || !vagaData.tipo) {
-        return res.status(400).json({ message: 'Número e tipo da vaga são obrigatórios.' });
+        res.status(400).json({ message: 'Número e tipo da vaga são obrigatórios.' });
+        return
       }
       const novaVaga = await vagaService.create(vagaData);
-      return res.status(201).json(novaVaga);
+      res.status(201).json(novaVaga);
+      return
     } catch (error: any) {
       console.error('Erro no controller ao criar vaga:', error.message);
       if (error.message.includes('Número de vaga') && error.message.includes('já existe')) {
-        return res.status(409).json({ message: error.message }); // Conflict
+        res.status(409).json({ message: error.message }); // Conflict
+        return
       }
-      return res.status(500).json({ message: 'Erro interno ao criar vaga.' });
+      res.status(500).json({ message: 'Erro interno ao criar vaga.' });
+      return
     }
   }
 
   // Listar todas as vagas (com filtros opcionais)
-  public async findAll(req: Request, res: Response): Promise<Response> {
+  public async findAll(req: Request, res: Response) {
     try {
       // Exemplo de como pegar filtros da query string: req.query.ocupada, req.query.tipo
       const filterOptions: any = {};
@@ -40,85 +44,103 @@ export class VagaController {
 
       const options = Object.keys(filterOptions).length > 0 ? { where: filterOptions } : undefined;
       const vagas = await vagaService.findAll(options);
-      return res.status(200).json(vagas);
+      res.status(200).json(vagas);
+      return
     } catch (error: any) {
       console.error('Erro no controller ao buscar vagas:', error.message);
-      return res.status(500).json({ message: 'Erro interno ao buscar vagas.' });
+      res.status(500).json({ message: 'Erro interno ao buscar vagas.' });
+      return
     }
   }
 
   // Listar vagas disponíveis
-  public async findAvailable(req: Request, res: Response): Promise<Response> {
+  public async findAvailable(req: Request, res: Response) {
     try {
       const tipo = req.query.tipo as 'Comum' | 'Prioritária' | 'Docente' | undefined;
       // Adicionar validação para o tipo se necessário
       const vagasDisponiveis = await vagaService.findAvailable(tipo);
-      return res.status(200).json(vagasDisponiveis);
+      res.status(200).json(vagasDisponiveis);
+      return
     } catch (error: any) {
       console.error('Erro no controller ao buscar vagas disponíveis:', error.message);
-      return res.status(500).json({ message: 'Erro interno ao buscar vagas disponíveis.' });
+      res.status(500).json({ message: 'Erro interno ao buscar vagas disponíveis.' });
+      return
     }
   }
 
   // Buscar vaga por ID
-  public async findById(req: Request, res: Response): Promise<Response> {
+  public async findById(req: Request, res: Response) {
     try {
       const id = parseInt(req.params.id, 10);
       if (isNaN(id)) {
-        return res.status(400).json({ message: 'ID inválido.' });
+        res.status(400).json({ message: 'ID inválido.' });
+        return
       }
       const vaga = await vagaService.findById(id);
       if (!vaga) {
-        return res.status(404).json({ message: 'Vaga não encontrada.' });
+        res.status(404).json({ message: 'Vaga não encontrada.' });
+        return
       }
-      return res.status(200).json(vaga);
+      res.status(200).json(vaga);
+      return
     } catch (error: any) {
       console.error('Erro no controller ao buscar vaga por ID:', error.message);
-      return res.status(500).json({ message: 'Erro interno ao buscar vaga por ID.' });
+      res.status(500).json({ message: 'Erro interno ao buscar vaga por ID.' });
+      return
     }
   }
 
   // Atualizar vaga por ID
-  public async update(req: Request, res: Response): Promise<Response> {
+  public async update(req: Request, res: Response) {
     try {
       const id = parseInt(req.params.id, 10);
       if (isNaN(id)) {
-        return res.status(400).json({ message: 'ID inválido.' });
+        res.status(400).json({ message: 'ID inválido.' });
+        return
       }
       const vagaData = req.body;
       // O service já impede a atualização direta do status 'ocupada'
       const vagaAtualizada = await vagaService.update(id, vagaData);
       if (!vagaAtualizada) {
-        return res.status(404).json({ message: 'Vaga não encontrada para atualização.' });
+        res.status(404).json({ message: 'Vaga não encontrada para atualização.' });
+        return
       }
-      return res.status(200).json(vagaAtualizada);
+      res.status(200).json(vagaAtualizada);
+      return
     } catch (error: any) {
       console.error('Erro no controller ao atualizar vaga:', error.message);
       if (error.message.includes('Número de vaga') && error.message.includes('já existe')) {
-        return res.status(409).json({ message: error.message }); // Conflict
+        res.status(409).json({ message: error.message }); // Conflict
+        return
       }
-      return res.status(500).json({ message: 'Erro interno ao atualizar vaga.' });
+      res.status(500).json({ message: 'Erro interno ao atualizar vaga.' });
+      return
     }
   }
 
   // Deletar vaga por ID
-  public async delete(req: Request, res: Response): Promise<Response> {
+  public async delete(req: Request, res: Response) {
     try {
       const id = parseInt(req.params.id, 10);
       if (isNaN(id)) {
-        return res.status(400).json({ message: 'ID inválido.' });
+        res.status(400).json({ message: 'ID inválido.' });
+        return
       }
       const deletado = await vagaService.delete(id);
       if (!deletado) {
-        return res.status(404).json({ message: 'Vaga não encontrada para exclusão.' });
+        res.status(404).json({ message: 'Vaga não encontrada para exclusão.' });
+        return
       }
-      return res.status(204).send();
+      res.status(204).send();
+      return
     } catch (error: any) {
       console.error('Erro no controller ao deletar vaga:', error.message);
       if (error.message.includes('existem registros de estacionamento associados')) {
-          return res.status(409).json({ message: error.message }); // Conflict due to FK constraint
+        res.status(409).json({ message: error.message }); // Conflict due to FK constraint
+        return
       }
-      return res.status(500).json({ message: 'Erro interno ao deletar vaga.' });
+      res.status(500).json({ message: 'Erro interno ao deletar vaga.' });
+      return
     }
   }
 }

@@ -5,7 +5,8 @@ export const authorizeRole = (allowedRoles: string | string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     // Verifica se o middleware de autenticação anexou o usuário à requisição
     if (!req.usuario) {
-      return res.status(401).json({ message: 'Usuário não autenticado.' });
+       res.status(401).json({ message: 'Usuário não autenticado.' });
+       return
     }
 
     const { role } = req.usuario;

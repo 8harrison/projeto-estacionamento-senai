@@ -26,7 +26,8 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
   if (token == null) {
-    return res.status(401).json({ message: 'Token de autenticação não fornecido.' });
+    res.status(401).json({ message: 'Token de autenticação não fornecido.' });
+    return
   }
 
   jwt.verify(token, JWT_SECRET, (err: any, usuario: any) => {
