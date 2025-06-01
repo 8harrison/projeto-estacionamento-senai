@@ -24,7 +24,8 @@ const customCorsMiddleware = (req: express.Request, callback: any) => {
     'http://localhost:3000',    // React development server
     'http://127.0.0.1:3000',   // Alternativa localhost
     'http://localhost:8080',    // Vue development server
-    'http://localhost:4200'     // Angular development server
+    'http://localhost:4200',     // Angular development server
+    'https://projeto-estacionamento-senai.onrender.com'
   ];
 
   // Verifica se é uma origem de desenvolvimento ou contém a palavra-chave
