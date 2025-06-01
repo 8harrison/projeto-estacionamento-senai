@@ -128,7 +128,7 @@ export class VeiculoController {
 
   public async findByPlacaOrModelo(req: Request, res: Response) {
     try {
-      const { query } = req.query
+      const  query  = req.query.termo
       const veiculo = await veiculoService.findByPlacaOrModelo(query as string)
       if (!veiculo) {
         res.status(404).json({ message: 'Veículo não encontrado.' });
