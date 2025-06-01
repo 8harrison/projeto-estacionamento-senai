@@ -1,5 +1,5 @@
-import { Aluno } from "../models";
-import { AlunoAttributes, AlunoCreationAttributes } from "../models/Aluno"; // Import interfaces if needed
+import { Aluno, Veiculo } from "../models"; // Importar Veiculo
+import { AlunoAttributes, AlunoCreationAttributes } from "../models/Aluno";
 import { FindOptions, WhereOptions } from "sequelize";
 
 export class AlunoService {
@@ -8,11 +8,9 @@ export class AlunoService {
   public async create(data: AlunoCreationAttributes): Promise<AlunoAttributes> {
     try {
       const aluno = await Aluno.create(data);
-      // Retornar apenas os atributos definidos na interface AlunoAttributes
       return aluno.get({ plain: true });
     } catch (error: any) {
       console.error("Erro ao criar aluno:", error);
-      // Verificar se é um erro de validação ou constraint
       if (error.name === 'SequelizeUniqueConstraintError') {
         throw new Error(`Erro: Matrícula '${data.matricula}' já existe.`);
       }
@@ -20,10 +18,14 @@ export class AlunoService {
     }
   }
 
-  // Buscar todos os alunos (com opção de filtro)
+  // Buscar todos os alunos (incluindo veículos associados)
   public async findAll(options?: FindOptions<AlunoAttributes>): Promise<AlunoAttributes[]> {
     try {
-      const alunos = await Aluno.findAll(options);
+      const finalOptions = {
+        ...options,
+        include: [{ model: Veiculo, as: 'veiculos' }] // Incluir veículos
+      };
+      const alunos = await Aluno.findAll(finalOptions);
       return alunos.map(aluno => aluno.get({ plain: true }));
     } catch (error) {
       console.error("Erro ao buscar alunos:", error);
@@ -31,10 +33,12 @@ export class AlunoService {
     }
   }
 
-  // Buscar um aluno por ID
+  // Buscar um aluno por ID (incluindo veículos associados)
   public async findById(id: number): Promise<AlunoAttributes | null> {
     try {
-      const aluno = await Aluno.findByPk(id);
+      const aluno = await Aluno.findByPk(id, {
+        include: [{ model: Veiculo, as: 'veiculos' }] // Incluir veículos
+      });
       return aluno ? aluno.get({ plain: true }) : null;
     } catch (error) {
       console.error(`Erro ao buscar aluno por ID ${id}:`, error);
@@ -47,18 +51,20 @@ export class AlunoService {
     try {
       const aluno = await Aluno.findByPk(id);
       if (!aluno) {
-        return null; // Aluno não encontrado
+        return null;
       }
-      // Remover campos não permitidos para atualização (ex: id, matricula talvez?)
       delete data.id;
       // delete data.matricula; // Descomente se matrícula não puder ser alterada
 
       await aluno.update(data);
-      return aluno.get({ plain: true });
+      // Recarregar para incluir veículos após atualização?
+      // Ou retornar apenas os dados atualizados do aluno?
+      // Por simplicidade, retornamos o aluno atualizado sem recarregar veículos aqui.
+      // Se precisar dos veículos atualizados, use findById após o update.
+      return aluno.get({ plain: true }); 
     } catch (error: any) {
       console.error(`Erro ao atualizar aluno por ID ${id}:`, error);
        if (error.name === 'SequelizeUniqueConstraintError') {
-        // Assumindo que o erro de unicidade pode ser no email ou outra chave única
         throw new Error(`Erro: Já existe um registro com os dados fornecidos (ex: email).`);
       }
       throw new Error("Erro no serviço ao atualizar aluno.");
@@ -70,19 +76,16 @@ export class AlunoService {
     try {
       const aluno = await Aluno.findByPk(id);
       if (!aluno) {
-        return false; // Aluno não encontrado
+        return false;
       }
-
-      // Opção 1: Deletar permanentemente
-      // await aluno.destroy();
-
-      // Opção 2: Marcar como inativo (recomendado se houver FKs ou histórico)
+      // Verificar se há veículos associados ativos? Ou se há registro de estacionamento ativo?
+      // Por enquanto, apenas inativa o aluno.
       aluno.ativo = false;
       await aluno.save();
-
       return true;
     } catch (error) {
       console.error(`Erro ao deletar aluno por ID ${id}:`, error);
+      // Adicionar tratamento para FK constraint se houver veículos ativos ou estacionamento?
       throw new Error("Erro no serviço ao deletar aluno.");
     }
   }

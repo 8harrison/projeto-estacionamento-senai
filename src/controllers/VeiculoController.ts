@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { VeiculoService } from '../services/VeiculoService';
 import { VeiculoCreationAttributes } from '../models/Veiculo';
 
@@ -122,6 +122,23 @@ export class VeiculoController {
       console.error('Erro no controller ao deletar veículo:', error.message);
       // Adicionar tratamento para FK constraint se necessário
       res.status(500).json({ message: 'Erro interno ao deletar veículo.' });
+      return
+    }
+  }
+
+  public async findByPlacaOrModelo(req: Request, res: Response) {
+    try {
+      const { query } = req.query
+      const veiculo = await veiculoService.findByPlacaOrModelo(query as string)
+      if (!veiculo) {
+        res.status(404).json({ message: 'Veículo não encontrado.' });
+        return
+      }
+      res.status(200).json(veiculo);
+      return
+    } catch (error: any) {
+      console.error('Erro no controller ao buscar veículo por ID:', error.message);
+      res.status(500).json({ message: 'Erro interno ao buscar veículo por placa ou modelo.' });
       return
     }
   }

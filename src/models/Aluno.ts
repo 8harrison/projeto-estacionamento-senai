@@ -12,6 +12,7 @@ export interface AlunoAttributes {
   email: string | null;
   ativo: boolean;
   data_cadastro: Date;
+  turno: string
 }
 
 // Interface para atributos de criação (id, ativo, data_cadastro são opcionais)
@@ -26,6 +27,7 @@ class Aluno extends Model<AlunoAttributes, AlunoCreationAttributes> implements A
   public email!: string | null;
   public ativo!: boolean;
   public data_cadastro!: Date;
+  public turno!: string;
 
   // Timestamps automáticos
   public readonly createdAt!: Date;
@@ -76,6 +78,10 @@ Aluno.init({
     allowNull: false,
     defaultValue: DataTypes.NOW, // Define a data atual no momento da criação
   },
+  turno: {
+    type: DataTypes.ENUM('Manhã', 'Tarde', 'Noite'),
+    allowNull: false
+  }
 }, {
   sequelize,
   tableName: 'Alunos',

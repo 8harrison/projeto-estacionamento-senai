@@ -1,6 +1,6 @@
 import { Veiculo, Aluno, Docente } from "../models";
 import { VeiculoAttributes, VeiculoCreationAttributes } from "../models/Veiculo";
-import { FindOptions, Op } from "sequelize";
+import { FindOptions, Op, WhereOptions } from "sequelize"; // Importar Op e WhereOptions
 
 export class VeiculoService {
 
@@ -41,11 +41,16 @@ export class VeiculoService {
     try {
       const defaultOptions: FindOptions<VeiculoAttributes> = {
         include: [
-          { model: Aluno, as: 'aluno', attributes: ['nome', 'matricula'] }, // Inclui dados básicos do aluno
-          { model: Docente, as: 'docente', attributes: ['nome', 'matricula'] } // Inclui dados básicos do docente
+          { model: Aluno, as: 'aluno', attributes: ['id', 'nome', 'matricula'] }, // Inclui dados básicos do aluno
+          { model: Docente, as: 'docente', attributes: ['id', 'nome', 'matricula'] } // Inclui dados básicos do docente
         ]
       };
-      const finalOptions = { ...defaultOptions, ...options }; // Mescla opções padrão com as fornecidas
+      // Mesclar where clauses se existirem
+      const finalOptions = { 
+        ...options, 
+        include: defaultOptions.include, 
+        where: { ...defaultOptions.where, ...options?.where } 
+      };
       const veiculos = await Veiculo.findAll(finalOptions);
       return veiculos.map(veiculo => veiculo.get({ plain: true }));
     } catch (error) {
@@ -59,14 +64,40 @@ export class VeiculoService {
     try {
       const veiculo = await Veiculo.findByPk(id, {
         include: [
-          { model: Aluno, as: 'aluno', attributes: ['nome', 'matricula', 'curso'] },
-          { model: Docente, as: 'docente', attributes: ['nome', 'matricula', 'departamento'] }
+          { model: Aluno, as: 'aluno', attributes: ['id', 'nome', 'matricula', 'curso'] },
+          { model: Docente, as: 'docente', attributes: ['id', 'nome', 'matricula', 'departamento'] }
         ]
       });
       return veiculo ? veiculo.get({ plain: true }) : null;
     } catch (error) {
       console.error(`Erro ao buscar veículo por ID ${id}:`, error);
       throw new Error("Erro no serviço ao buscar veículo por ID.");
+    }
+  }
+
+  // Buscar veículos por placa ou modelo (com inclusão de proprietário)
+  public async findByPlacaOrModelo(query: string): Promise<VeiculoAttributes[]> {
+    try {
+      if (!query || query.trim() === '') {
+        return []; // Retorna vazio se a query for inválida
+      }
+      const searchTerm = `%${query}%`; // Para busca parcial (LIKE)
+      const veiculos = await Veiculo.findAll({
+        where: {
+          [Op.or]: [
+            { placa: { [Op.like]: searchTerm } },
+            { modelo: { [Op.like]: searchTerm } }
+          ]
+        },
+        include: [
+          { model: Aluno, as: 'aluno', attributes: ['id', 'nome', 'matricula'] },
+          { model: Docente, as: 'docente', attributes: ['id', 'nome', 'matricula'] }
+        ]
+      });
+      return veiculos.map(veiculo => veiculo.get({ plain: true }));
+    } catch (error) {
+      console.error(`Erro ao buscar veículo por placa ou modelo (${query}):`, error);
+      throw new Error("Erro no serviço ao buscar veículo por placa ou modelo.");
     }
   }
 
@@ -78,7 +109,6 @@ export class VeiculoService {
         return null;
       }
 
-      // Impedir alteração de proprietário diretamente aqui? Ou validar?
       // Validação para garantir que a atualização não viole a regra do proprietário
       const finalAlunoId = data.alunoId !== undefined ? data.alunoId : veiculo.alunoId;
       const finalDocenteId = data.docenteId !== undefined ? data.docenteId : veiculo.docenteId;
@@ -99,7 +129,7 @@ export class VeiculoService {
       delete data.id;
 
       await veiculo.update(data);
-      // Recarregar para incluir associações atualizadas, se necessário
+      // Recarregar para incluir associações atualizadas
       const veiculoAtualizado = await this.findById(id);
       return veiculoAtualizado;
 
@@ -122,15 +152,20 @@ export class VeiculoService {
       if (!veiculo) {
         return false;
       }
-      // Verificar se há registros de estacionamento associados? Depende da regra de negócio.
-      // Por padrão, as FKs na tabela Estacionamentos são ON DELETE SET NULL ou CASCADE?
-      // No modelo original era apenas FK, sem ON DELETE. Sequelize padrão é SET NULL/NO ACTION?
-      // Vamos assumir que podemos deletar o veículo.
+      // Adicionar verificação se o veículo está atualmente estacionado?
+      // const estacionamentoAtivo = await Estacionamento.findOne({ where: { veiculoId: id, data_saida: null } });
+      // if (estacionamentoAtivo) {
+      //   throw new Error("Não é possível excluir veículo com registro de estacionamento ativo.");
+      // }
+      
       await veiculo.destroy();
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Erro ao deletar veículo por ID ${id}:`, error);
-      // Tratar erro de FK constraint se houver estacionamentos ativos?
+      // Tratar erro de FK constraint?
+      if (error.message.includes("Não é possível excluir veículo")) {
+          throw new Error(error.message);
+      }
       throw new Error("Erro no serviço ao deletar veículo.");
     }
   }

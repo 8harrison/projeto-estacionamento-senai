@@ -1,4 +1,4 @@
-import { Docente } from "../models";
+import { Docente, Veiculo } from "../models"; // Importar Veiculo
 import { DocenteAttributes, DocenteCreationAttributes } from "../models/Docente";
 import { FindOptions } from "sequelize";
 
@@ -18,10 +18,14 @@ export class DocenteService {
     }
   }
 
-  // Buscar todos os docentes
+  // Buscar todos os docentes (incluindo veículos associados)
   public async findAll(options?: FindOptions<DocenteAttributes>): Promise<DocenteAttributes[]> {
     try {
-      const docentes = await Docente.findAll(options);
+      const finalOptions = {
+        ...options,
+        include: [{ model: Veiculo, as: 'veiculos' }] // Incluir veículos
+      };
+      const docentes = await Docente.findAll(finalOptions);
       return docentes.map(docente => docente.get({ plain: true }));
     } catch (error) {
       console.error("Erro ao buscar docentes:", error);
@@ -29,10 +33,12 @@ export class DocenteService {
     }
   }
 
-  // Buscar um docente por ID
+  // Buscar um docente por ID (incluindo veículos associados)
   public async findById(id: number): Promise<DocenteAttributes | null> {
     try {
-      const docente = await Docente.findByPk(id);
+      const docente = await Docente.findByPk(id, {
+        include: [{ model: Veiculo, as: 'veiculos' }] // Incluir veículos
+      });
       return docente ? docente.get({ plain: true }) : null;
     } catch (error) {
       console.error(`Erro ao buscar docente por ID ${id}:`, error);
@@ -51,6 +57,8 @@ export class DocenteService {
       // delete data.matricula; // Descomente se matrícula não puder ser alterada
 
       await docente.update(data);
+      // Retornar docente atualizado sem recarregar veículos por padrão.
+      // Use findById após o update se precisar dos veículos.
       return docente.get({ plain: true });
     } catch (error: any) {
       console.error(`Erro ao atualizar docente por ID ${id}:`, error);
@@ -74,6 +82,7 @@ export class DocenteService {
       return true;
     } catch (error) {
       console.error(`Erro ao deletar docente por ID ${id}:`, error);
+      // Adicionar tratamento para FK constraint?
       throw new Error("Erro no serviço ao deletar docente.");
     }
   }

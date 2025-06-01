@@ -1,10 +1,18 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { AuthService } from '../services/AuthService';
+import { UsuarioCreationAttributes } from '../models/Usuario'; // Importar interface
 
-const authService = new AuthService();
+// Função wrapper para lidar com erros assíncronos nos controllers
+const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) => 
+  (req: Request, res: Response, next: NextFunction) => {
+    Promise.resolve(fn(req, res, next)).catch(next);
+};
 
 export class AuthController {
-  public async login(req: Request, res: Response) {
+  private authService = new AuthService();
+
+  // Método para login
+  public login = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const { email, senha } = req.body;
 
     if (!email || !senha) {
@@ -13,36 +21,42 @@ export class AuthController {
     }
 
     try {
-      const result = await authService.login(email, senha);
-
-      if (!result) {
-        res.status(401).json({ message: 'Credenciais inválidas.' });
-        return
+      const result = await this.authService.login(email, senha);
+      if (result) {
+        res.status(200).json(result);
+      } else {
+        res.status(401).json({ message: 'Credenciais inválidas ou usuário inativo.' });
       }
-
-      // Retorna o token e informações básicas do usuário (sem a senha)
-      res.status(200).json(result);
-      return
     } catch (error: any) {
-      console.error('Erro no controller de login:', error.message);
-      // Evitar expor detalhes internos do erro
+      // Logar o erro real no servidor
+      console.error("Erro no controller de login:", error.message);
+      // Enviar uma resposta genérica para o cliente
       res.status(500).json({ message: 'Erro interno do servidor ao tentar fazer login.' });
-      return
     }
-  }
+  });
 
-  // Pode adicionar um endpoint para obter informações do usuário logado (ex: /me)
-  public async getMe(req: Request, res: Response) {
-    // O middleware authenticateToken já validou o token e anexou req.usuario
-    if (!req.usuario) {
-      // Isso não deve acontecer se o authenticateToken foi usado corretamente antes
-      res.status(401).json({ message: 'Usuário não autenticado.' });
-      return
+  // Método para registrar novo usuário (Admin/Porteiro)
+  public register = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const userData: UsuarioCreationAttributes = req.body;
+
+    // Validação básica de entrada
+    if (!userData.nome || !userData.email || !userData.senha || !userData.role) {
+        res.status(400).json({ message: 'Nome, email, senha e role são obrigatórios.' });
+        return;
     }
-    // Retorna as informações do usuário que estavam no payload do token
-    // Certifique-se de não incluir informações sensíveis que não deveriam estar no token
-    res.status(200).json({ usuario: req.usuario });
-    return
-  }
+
+    try {
+      const novoUsuario = await this.authService.registerUser(userData);
+      res.status(201).json(novoUsuario);
+    } catch (error: any) {
+      console.error("Erro no controller de registro:", error.message);
+      // Se o erro for de validação do serviço, repassar a mensagem
+      if (error.message.includes('Erro:') || error.message.includes('Role inválida')) {
+        res.status(400).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: 'Erro interno do servidor ao tentar registrar usuário.' });
+      }
+    }
+  });
 }
 

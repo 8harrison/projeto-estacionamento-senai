@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import Usuario from '../models/Usuario';
+import { UsuarioAttributes, UsuarioCreationAttributes } from '../models/Usuario'; // Importar interfaces
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -54,6 +55,31 @@ export class AuthService {
     }
   }
 
-  // Futuramente, pode adicionar métodos para registro, recuperação de senha, etc.
+  // Método para registrar novos usuários (Admin ou Porteiro)
+  public async registerUser(data: UsuarioCreationAttributes): Promise<Omit<UsuarioAttributes, 'senha_hash'>> {
+    try {
+      // Validar role permitida
+      if (data.role !== 'administrador' && data.role !== 'porteiro') {
+        throw new Error('Role inválida. Permitido apenas \'administrador\' ou \'porteiro\'.');
+      }
+
+      // O hook beforeCreate no modelo Usuario já cuida do hash da senha
+      const novoUsuario = await Usuario.create(data);
+
+      // Retornar dados do usuário sem a senha
+      const { senha_hash, ...usuarioSemSenha } = novoUsuario.get({ plain: true });
+      return usuarioSemSenha;
+
+    } catch (error: any) {
+      console.error('Erro ao registrar novo usuário:', error);
+      if (error.name === 'SequelizeUniqueConstraintError') {
+        throw new Error(`Erro: Email '${data.email}' já está em uso.`);
+      }
+      if (error.message.includes('Role inválida')) {
+          throw new Error(error.message);
+      }
+      throw new Error('Erro no serviço ao registrar novo usuário.');
+    }
+  }
 }
 
