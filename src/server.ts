@@ -1,6 +1,6 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
-import { sequelize } from './models'; // Import sequelize instance for connection check
+import { sequelize } from './models/index'; // Import sequelize instance for connection check
 import authRoutes from './routes/authRoutes';
 import alunoRoutes from './routes/alunoRoutes';
 import docenteRoutes from './routes/docenteRoutes';
@@ -8,6 +8,8 @@ import veiculoRoutes from './routes/veiculoRoutes';
 import vagaRoutes from './routes/vagaRoutes';
 import estacionamentoRoutes from './routes/estacionamentoRoutes';
 import cors from 'cors';
+import swaggerUi from 'swagger-ui-express'; // Importar swagger-ui-express
+import swaggerSpec from './config/swagger'; // Importar a especificação gerada
 // import compression from 'compression';
 
 
@@ -45,6 +47,7 @@ const customCorsMiddleware = (req: express.Request, callback: any) => {
 const app: Express = express();
 const port = process.env.PORT || 3000;
 
+
 // app.use(compression());
 app.use(cors(customCorsMiddleware));
 // Middlewares Globais
@@ -55,6 +58,10 @@ app.use(express.urlencoded({ extended: true })); // Para parsear dados de formul
 app.get('/', (req: Request, res: Response) => {
   res.status(200).json({ message: 'API Estacionamento está operacional!' });
 });
+
+// Rota para a documentação Swagger UI
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+console.log(`Documentação Swagger disponível em http://localhost:${port}/api-docs`);
 
 // Integração das Rotas
 app.use('/api/auth', authRoutes);
