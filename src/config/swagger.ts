@@ -19,7 +19,7 @@ const options: swaggerJsdoc.Options = {
         description: 'Servidor de Desenvolvimento Local',
       },
       {
-        url: "https://projeto-estacionamento-senai.onrender.com",
+        url: "https://projeto-estacionamento-senai.onrender.com/api",
         description: 'Servidor de Deploy'
       }
       // Adicionar outros servidores se necessário (ex: produção)
