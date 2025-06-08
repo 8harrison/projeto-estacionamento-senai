@@ -52,7 +52,6 @@ export class VagaService {
       // Impedir alteração de 'ocupada' diretamente por aqui? A ocupação é controlada pelos estacionamentos.
       // Poderia permitir alterar 'localizacao', 'tipo', 'numero' (se não for unique?)
       delete data.id;
-      delete data.ocupada; // Remover 'ocupada' dos dados de atualização direta
 
       await vaga.update(data);
       return vaga.get({ plain: true });
