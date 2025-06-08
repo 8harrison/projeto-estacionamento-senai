@@ -15,25 +15,29 @@ import swaggerSpec from './config/swagger'; // Importar a especificação gerada
 
 dotenv.config();
 
+const manusEndpoint = process.env.URL_CORS
+
 const customCorsMiddleware = (req: express.Request, callback: any) => {
   const origin = req.header('Origin');
   const keyword = 'meu-site-sa-senai';
 
-   // Lista de origens permitidas para desenvolvimento
+  // Lista de origens permitidas para desenvolvimento
   const devOrigins = [
     'http://localhost:3000',    // React development server
     'http://127.0.0.1:3000',   // Alternativa localhost
     'http://localhost:8080',    // Vue development server
     'http://localhost:4200',     // Angular development server
-    'https://projeto-estacionamento-senai.onrender.com'
+    'https://projeto-estacionamento-senai.onrender.com',
+    'http://localhost:5173',
+    manusEndpoint
   ];
 
   // Verifica se é uma origem de desenvolvimento ou contém a palavra-chave
   const isAllowed = origin && (
-    devOrigins.includes(origin) || 
+    devOrigins.includes(origin) ||
     origin.includes(keyword)
   );
-  
+
   // Verifica se a origem contém a palavra-chave
   const corsOptions = {
     origin: isAllowed ? origin : false,
