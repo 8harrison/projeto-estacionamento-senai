@@ -77,5 +77,5 @@ As principais tabelas do banco incluem:
 ### 1. Clone o repositório
 
 ```bash
-git clone [https://github.com/seu-usuario/nome-do-repositorio.git](https://github.com/8harrison/projeto-estacionamento-senai.git)
+git clone https://github.com/8harrison/projeto-estacionamento-senai.git
 cd projeto-estacionamento
