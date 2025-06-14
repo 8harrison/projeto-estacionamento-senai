@@ -92,7 +92,9 @@ Veiculo.init({
   validate: {
     // Validação para garantir que o veículo pertença a um aluno OU um docente, mas não ambos ou nenhum
     checkProprietario() {
-      if ((this.alunoId === null && this.docenteId === null) || (this.alunoId !== null && this.docenteId !== null)) {
+      const alunoPresente = !!this.alunoId
+      const docentePresente = !!this.docenteId
+      if ((alunoPresente && docentePresente) || (alunoPresente && docentePresente)) {
         throw new Error('O veículo deve pertencer a um Aluno ou a um Docente, mas não a ambos ou nenhum.');
       }
     }

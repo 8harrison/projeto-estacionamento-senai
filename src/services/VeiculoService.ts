@@ -1,26 +1,31 @@
 import { Veiculo, Aluno, Docente } from "../models";
 import { VeiculoAttributes, VeiculoCreationAttributes } from "../models/Veiculo";
-import { FindOptions, Op, WhereOptions } from "sequelize"; // Importar Op e WhereOptions
+import { FindOptions, Op } from "sequelize"; // Importar Op e WhereOptions
 
 export class VeiculoService {
 
   // Criar um novo veículo
   public async create(data: VeiculoCreationAttributes): Promise<VeiculoAttributes> {
     try {
+      const alunoPresente = !!data.alunoId
+      const docentePresente = !!data.docenteId
+      
       // Validação explícita de proprietário antes de tentar criar
-      if ((!data.alunoId && !data.docenteId) || (data.alunoId && data.docenteId)) {
+      if ((!alunoPresente && !docentePresente) || (alunoPresente && docentePresente)) {
         throw new Error("O veículo deve pertencer a um Aluno ou a um Docente, mas não a ambos ou nenhum.");
       }
       // Verificar se o aluno ou docente existe e está ativo
       if (data.alunoId) {
         const aluno = await Aluno.findOne({ where: { id: data.alunoId, ativo: true } });
         if (!aluno) throw new Error(`Aluno com ID ${data.alunoId} não encontrado ou inativo.`);
+        delete data.docenteId
       }
       if (data.docenteId) {
         const docente = await Docente.findOne({ where: { id: data.docenteId, ativo: true } });
         if (!docente) throw new Error(`Docente com ID ${data.docenteId} não encontrado ou inativo.`);
+        delete data.alunoId
       }
-
+     
       const veiculo = await Veiculo.create(data);
       return veiculo.get({ plain: true });
     } catch (error: any) {
