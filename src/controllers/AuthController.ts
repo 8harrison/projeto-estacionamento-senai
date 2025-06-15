@@ -58,5 +58,17 @@ export class AuthController {
       }
     }
   });
+
+  public getAll = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const usuarios = await this.authService.getAllUsers()
+
+      res.status(200).json(usuarios)
+      return
+    } catch(e){
+      res.status(500).json({message: 'Erro interno ao buscar usuários.'})
+      return
+    }
+  })
 }
 

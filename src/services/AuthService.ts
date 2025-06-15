@@ -81,5 +81,13 @@ export class AuthService {
       throw new Error('Erro no serviço ao registrar novo usuário.');
     }
   }
+
+  public async getAllUsers(): Promise<Omit<UsuarioAttributes, 'senha_hash'>[]> {
+    const users = await Usuario.findAll()
+    return users.map(user => {
+      const {senha_hash, ...usuario_sem_senha} = user.get({plain: true})
+      return usuario_sem_senha
+    })
+  }
 }
 

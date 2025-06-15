@@ -179,6 +179,8 @@ router.post('/login', authController.login);
  */
 router.post('/register', authenticateToken, authorizeRole(['administrador']), authController.register);
 
+router.get('/usuarios', authenticateToken, authorizeRole(['administrador']), authController.getAll)
+
 
 // Rota para verificar o token atual (exemplo)
 // router.get('/me', authenticateToken, authController.getMe); // Descomente se precisar desta rota
