@@ -84,7 +84,9 @@ export class EstacionamentoService {
           id: estacionamentoId,
           data_saida: null // Garantir que estamos registrando a saída de uma entrada ativa
         },
-        include: [Vaga], // Incluir a vaga para atualizar seu status
+        include: [{
+          model: Vaga, as: 'vaga'
+        }], // Incluir a vaga para atualizar seu status
         transaction
       });
 
