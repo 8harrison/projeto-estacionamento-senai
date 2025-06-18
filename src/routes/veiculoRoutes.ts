@@ -240,7 +240,7 @@ router.get('/', authorizeRole(['administrador', 'porteiro']), veiculoController.
  *       500:
  *         description: Erro interno do servidor.
  */
-router.get('/buscar', authorizeRole(['administrador', 'porteiro']), veiculoController.findByPlacaOrModelo);
+router.get('/buscar', veiculoController.findByPlacaOrModelo);
 
 /**
  * @swagger
