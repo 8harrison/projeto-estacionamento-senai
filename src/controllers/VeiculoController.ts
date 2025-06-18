@@ -134,6 +134,7 @@ export class VeiculoController {
         res.status(404).json({ message: 'Veículo não encontrado.' });
         return
       }
+      req.io.emit('resultado-placa', veiculo)
       res.status(200).json(veiculo);
       return
     } catch (error: any) {

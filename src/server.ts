@@ -10,8 +10,8 @@ import estacionamentoRoutes from './routes/estacionamentoRoutes';
 import cors from 'cors';
 import swaggerUi from 'swagger-ui-express'; // Importar swagger-ui-express
 import swaggerSpec from './config/swagger'; // Importar a especificação gerada
-// import compression from 'compression';
-
+import { Server } from 'socket.io';
+import http from 'http'
 
 dotenv.config();
 
@@ -49,7 +49,38 @@ const customCorsMiddleware = (req: express.Request, callback: any) => {
   callback(null, corsOptions);
 };
 
+const ioCorsValidator = (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+  const keyword = 'meu-site-sa-senai';
+
+  const devOrigins = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://localhost:8080',
+    'http://localhost:4200',
+    'https://projeto-estacionamento-senai.onrender.com',
+    'http://localhost:5173',
+    manusEndpoint // <- isso precisa estar definido antes
+  ];
+
+  const isAllowed = origin && (
+    devOrigins.includes(origin) ||
+    origin.includes(keyword)
+  );
+
+  if (isAllowed) {
+    callback(null, true); // permite conexão
+  } else {
+    callback(new Error('CORS bloqueado no Socket.IO')); // bloqueia
+  }
+};
+
 const app: Express = express();
+const server = http.createServer(app)
+const io = new Server(server, {
+  cors: {
+    origin: ioCorsValidator
+  }
+})
 const port = process.env.PORT || 3000;
 
 
@@ -57,6 +88,10 @@ const port = process.env.PORT || 3000;
 app.use(cors(customCorsMiddleware));
 // Middlewares Globais
 app.use(express.json()); // Para parsear JSON no corpo das requisições
+app.use((req, res, next) => {
+  req.io = io
+  next()
+})
 app.use(express.urlencoded({ extended: true })); // Para parsear dados de formulário URL-encoded
 
 // Rota de Health Check básica
@@ -96,7 +131,7 @@ const startServer = async () => {
     // console.log('Modelos sincronizados com o banco de dados.');
 
     // 3. Iniciar o servidor Express
-    app.listen(port, () => {
+    server.listen(port, () => {
       console.log(`Servidor rodando na porta ${port}`);
       console.log(`Acesse a API em http://localhost:${port}`);
     });
