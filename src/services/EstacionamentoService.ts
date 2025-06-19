@@ -1,4 +1,4 @@
-import { Estacionamento, Veiculo, Vaga } from "../models";
+import { Estacionamento, Veiculo, Vaga, Aluno, Docente } from "../models";
 import { EstacionamentoAttributes, EstacionamentoCreationAttributes } from "../models/Estacionamento";
 import { FindOptions, Op } from "sequelize";
 import sequelize from "../config/database"; // Importar para transações
@@ -6,11 +6,17 @@ import sequelize from "../config/database"; // Importar para transações
 export class EstacionamentoService {
 
   // Registrar a entrada de um veículo em uma vaga
-  public async registrarEntrada(data: { veiculoId: number; vagaId: number }): Promise<EstacionamentoAttributes> {
+  public async registrarEntrada(data: { veiculoId: number; vagaId: number }): Promise<Partial<EstacionamentoAttributes>> {
     const transaction = await sequelize.transaction(); // Iniciar transação
     try {
       // 1. Verificar se o veículo existe
-      const veiculo = await Veiculo.findByPk(data.veiculoId, { transaction });
+      const veiculo = await Veiculo.findByPk(data.veiculoId, {
+        transaction,
+        include: [
+          { model: Aluno, as: 'aluno', attributes: ['id', 'nome', 'matricula', 'curso'] },
+          { model: Docente, as: 'docente', attributes: ['id', 'nome', 'matricula', 'departamento'] }
+        ]
+      });
       if (!veiculo) {
         throw new Error(`Veículo com ID ${data.veiculoId} não encontrado.`);
       }
@@ -56,19 +62,22 @@ export class EstacionamentoService {
 
       // Recarregar para obter os dados completos, incluindo a data_entrada gerada
       const resultado = await Estacionamento.findByPk(novoEstacionamento.id, {
-          include: [
-              { model: Veiculo, as: 'veiculo', attributes: ['placa', 'modelo'] },
-              { model: Vaga, as: 'vaga', attributes: ['numero', 'tipo'] }
-          ]
+        include: [
+          { model: Veiculo, as: 'veiculo', attributes: ['placa', 'modelo'] },
+          { model: Vaga, as: 'vaga', attributes: ['numero', 'tipo'] }
+        ]
       });
-      return resultado!.get({ plain: true });
+     
+        
+      const registro = {...resultado?.get({plain: true}), veiculo: {...veiculo.get({plain: true})}}
+      return registro;
 
     } catch (error: any) {
       await transaction.rollback(); // Desfazer a transação em caso de erro
       console.error("Erro ao registrar entrada:", error);
       // Repassar mensagens de erro específicas
       if (error.message.includes("não encontrado") || error.message.includes("já está ocupada") || error.message.includes("já possui um registro de entrada ativo")) {
-          throw new Error(error.message);
+        throw new Error(error.message);
       }
       throw new Error("Erro no serviço ao registrar entrada de veículo.");
     }
@@ -76,7 +85,7 @@ export class EstacionamentoService {
 
   // Registrar a saída de um veículo
   public async registrarSaida(estacionamentoId: number, valorPago?: number): Promise<EstacionamentoAttributes | null> {
-     const transaction = await sequelize.transaction();
+    const transaction = await sequelize.transaction();
     try {
       // 1. Encontrar o registro de estacionamento ativo
       const estacionamento = await Estacionamento.findOne({
@@ -121,19 +130,19 @@ export class EstacionamentoService {
       console.log(`Saída registrada para Estacionamento ID ${estacionamentoId}`);
 
       // Retornar o registro atualizado
-       const resultado = await Estacionamento.findByPk(estacionamento.id, {
-          include: [
-              { model: Veiculo, as: 'veiculo', attributes: ['placa', 'modelo'] },
-              { model: Vaga, as: 'vaga', attributes: ['numero', 'tipo'] }
-          ]
+      const resultado = await Estacionamento.findByPk(estacionamento.id, {
+        include: [
+          { model: Veiculo, as: 'veiculo', attributes: ['placa', 'modelo'] },
+          { model: Vaga, as: 'vaga', attributes: ['numero', 'tipo'] }
+        ]
       });
       return resultado!.get({ plain: true });
 
     } catch (error: any) {
       await transaction.rollback();
       console.error("Erro ao registrar saída:", error);
-       if (error.message.includes("não encontrado") || error.message.includes("já foi registrada")) {
-          throw new Error(error.message);
+      if (error.message.includes("não encontrado") || error.message.includes("já foi registrada")) {
+        throw new Error(error.message);
       }
       throw new Error("Erro no serviço ao registrar saída de veículo.");
     }
@@ -142,23 +151,35 @@ export class EstacionamentoService {
   // Buscar todos os registros de estacionamento (com filtros, paginação, etc.)
   public async findAll(options?: FindOptions<EstacionamentoAttributes>): Promise<EstacionamentoAttributes[]> {
     try {
-        const defaultOptions: FindOptions<EstacionamentoAttributes> = {
+      const defaultOptions: FindOptions<EstacionamentoAttributes> = {
+        include: [
+          { model: Veiculo, as: 'veiculo', attributes: ['placa', 'modelo'], 
             include: [
-                { model: Veiculo, as: 'veiculo', attributes: ['placa', 'modelo'] },
-                { model: Vaga, as: 'vaga', attributes: ['numero', 'tipo'] }
-            ],
-            order: [['data_entrada', 'DESC']] // Ordenar pelos mais recentes primeiro
-        };
-        const finalOptions = { ...defaultOptions, ...options };
+              {
+                model: Aluno,
+                as: 'aluno',
+                attributes: ['nome', 'matricula']
+              },
+              {
+                model: Docente,
+                as: 'docente',
+                attributes: ['nome', 'matricula']
+              }
+            ] },
+          { model: Vaga, as: 'vaga', attributes: ['numero', 'tipo'] }
+        ],
+        order: [['data_entrada', 'DESC']] // Ordenar pelos mais recentes primeiro
+      };
+      const finalOptions = { ...defaultOptions, ...options };
 
-        // Exemplo de como adicionar filtro por período no options:
-        // options.where = { data_entrada: { [Op.between]: [startDate, endDate] } };
+      // Exemplo de como adicionar filtro por período no options:
+      // options.where = { data_entrada: { [Op.between]: [startDate, endDate] } };
 
-        const estacionamentos = await Estacionamento.findAll(finalOptions);
-        return estacionamentos.map(est => est.get({ plain: true }));
+      const estacionamentos = await Estacionamento.findAll(finalOptions);
+      return estacionamentos.map(est => est.get({ plain: true }));
     } catch (error) {
-        console.error("Erro ao buscar registros de estacionamento:", error);
-        throw new Error("Erro no serviço ao buscar registros de estacionamento.");
+      console.error("Erro ao buscar registros de estacionamento:", error);
+      throw new Error("Erro no serviço ao buscar registros de estacionamento.");
     }
   }
 
@@ -178,23 +199,23 @@ export class EstacionamentoService {
     }
   }
 
-    // Buscar registros de estacionamento ativos (sem data de saída)
-    public async findActive(): Promise<EstacionamentoAttributes[]> {
-        try {
-            const options: FindOptions<EstacionamentoAttributes> = {
-                where: { data_saida: null },
-                include: [
-                    { model: Veiculo, as: 'veiculo', attributes: ['placa', 'modelo'] },
-                    { model: Vaga, as: 'vaga', attributes: ['numero', 'tipo'] }
-                ],
-                order: [['data_entrada', 'ASC']] // Ordenar pelos mais antigos primeiro
-            };
-            return await this.findAll(options);
-        } catch (error) {
-            console.error("Erro ao buscar estacionamentos ativos:", error);
-            throw new Error("Erro no serviço ao buscar estacionamentos ativos.");
-        }
+  // Buscar registros de estacionamento ativos (sem data de saída)
+  public async findActive(): Promise<EstacionamentoAttributes[]> {
+    try {
+      const options: FindOptions<EstacionamentoAttributes> = {
+        where: { data_saida: null },
+        include: [
+          { model: Veiculo, as: 'veiculo', attributes: ['placa', 'modelo'] },
+          { model: Vaga, as: 'vaga', attributes: ['numero', 'tipo'] }
+        ],
+        order: [['data_entrada', 'ASC']] // Ordenar pelos mais antigos primeiro
+      };
+      return await this.findAll(options);
+    } catch (error) {
+      console.error("Erro ao buscar estacionamentos ativos:", error);
+      throw new Error("Erro no serviço ao buscar estacionamentos ativos.");
     }
+  }
 
   // Não há métodos update/delete diretos para Estacionamento, pois as ações são registrar entrada/saída.
 }

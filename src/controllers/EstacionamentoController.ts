@@ -20,6 +20,7 @@ export class EstacionamentoController {
       }
 
       const novoEstacionamento = await estacionamentoService.registrarEntrada({ veiculoId: parseInt(veiculoId, 10), vagaId: parseInt(vagaId, 10) });
+      req.io.emit('resultado-novo-estacionamento', novoEstacionamento)
       res.status(201).json(novoEstacionamento);
       return
     } catch (error: any) {
