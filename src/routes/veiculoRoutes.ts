@@ -14,7 +14,7 @@ const veiculoController = new VeiculoController();
  */
 
 // Aplicar autenticação a todas as rotas de veículo
-router.use(authenticateToken);
+// router.use(authenticateToken);
 
 /**
  * @swagger
@@ -176,7 +176,7 @@ router.use(authenticateToken);
  *       500:
  *         description: Erro interno do servidor.
  */
-router.post('/', authorizeRole(['administrador']), veiculoController.create);
+router.post('/', authenticateToken, authorizeRole(['administrador']), veiculoController.create);
 
 /**
  * @swagger
@@ -203,7 +203,7 @@ router.post('/', authorizeRole(['administrador']), veiculoController.create);
  *       500:
  *         description: Erro interno do servidor.
  */
-router.get('/', authorizeRole(['administrador', 'porteiro']), veiculoController.findAll);
+router.get('/', authenticateToken, authorizeRole(['administrador', 'porteiro']), veiculoController.findAll);
 
 /**
  * @swagger
@@ -276,7 +276,7 @@ router.get('/buscar', veiculoController.findByPlacaOrModelo);
  *       500:
  *         description: Erro interno do servidor.
  */
-router.get('/:id', authorizeRole(['administrador', 'porteiro']), veiculoController.findById);
+router.get('/:id',authenticateToken, authorizeRole(['administrador', 'porteiro']), veiculoController.findById);
 
 /**
  * @swagger
@@ -320,7 +320,7 @@ router.get('/:id', authorizeRole(['administrador', 'porteiro']), veiculoControll
  *       500:
  *         description: Erro interno do servidor.
  */
-router.put('/:id', authorizeRole(['administrador']), veiculoController.update);
+router.put('/:id',authenticateToken, authorizeRole(['administrador']), veiculoController.update);
 
 /**
  * @swagger
@@ -352,7 +352,7 @@ router.put('/:id', authorizeRole(['administrador']), veiculoController.update);
  *       500:
  *         description: Erro interno do servidor.
  */
-router.delete('/:id', authorizeRole(['administrador']), veiculoController.delete);
+router.delete('/:id',authenticateToken, authorizeRole(['administrador']), veiculoController.delete);
 
 export default router;
 
