@@ -120,7 +120,7 @@ router.use(authenticateToken);
  *       500:
  *         description: Erro interno do servidor.
  */
-router.post('/', authorizeRole(['administrador']), vagaController.create);
+router.post('/', authorizeRole(['administrador', 'master']), vagaController.create);
 
 /**
  * @swagger
@@ -159,7 +159,7 @@ router.post('/', authorizeRole(['administrador']), vagaController.create);
  *       500:
  *         description: Erro interno do servidor.
  */
-router.get('/', authorizeRole(['administrador', 'porteiro']), vagaController.findAll);
+router.get('/', authorizeRole(['administrador', 'porteiro', 'master']), vagaController.findAll);
 
 /**
  * @swagger
@@ -193,7 +193,7 @@ router.get('/', authorizeRole(['administrador', 'porteiro']), vagaController.fin
  *       500:
  *         description: Erro interno do servidor.
  */
-router.get('/disponiveis', authorizeRole(['administrador', 'porteiro']), vagaController.findAvailable);
+router.get('/disponiveis', authorizeRole(['administrador', 'porteiro', 'master']), vagaController.findAvailable);
 
 /**
  * @swagger
@@ -229,7 +229,7 @@ router.get('/disponiveis', authorizeRole(['administrador', 'porteiro']), vagaCon
  *       500:
  *         description: Erro interno do servidor.
  */
-router.get('/:id', authorizeRole(['administrador', 'porteiro']), vagaController.findById);
+router.get('/:id', authorizeRole(['administrador', 'porteiro', 'master']), vagaController.findById);
 
 /**
  * @swagger
@@ -273,7 +273,7 @@ router.get('/:id', authorizeRole(['administrador', 'porteiro']), vagaController.
  *       500:
  *         description: Erro interno do servidor.
  */
-router.put('/:id', authorizeRole(['administrador']), vagaController.update);
+router.put('/:id', authorizeRole(['administrador', 'master']), vagaController.update);
 
 /**
  * @swagger
@@ -305,7 +305,7 @@ router.put('/:id', authorizeRole(['administrador']), vagaController.update);
  *       500:
  *         description: Erro interno do servidor.
  */
-router.delete('/:id', authorizeRole(['administrador']), vagaController.delete);
+router.delete('/:id', authorizeRole(['administrador', 'master']), vagaController.delete);
 
 export default router;
 

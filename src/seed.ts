@@ -62,19 +62,19 @@ const seedDatabase = async () => {
         // Limpar tabelas na ordem correta (cuidado com FKs!)
         // É mais seguro deletar na ordem inversa da criação ou desabilitar FK checks temporariamente (se o DB permitir)
         console.log('Limpando tabelas existentes (cuidado com FKs)...');
-        await Estacionamento.destroy({ where: {}, truncate: false });
-        await Veiculo.destroy({ where: {}, truncate: false });
-        await Vaga.destroy({ where: {}, truncate: false });
-        await Aluno.destroy({ where: {}, truncate: false });
-        await Docente.destroy({ where: {}, truncate: false });
-        await Usuario.destroy({ where: { email: { [Op.ne]: 'admin@exemplo.com' } } }); // Não deletar admin padrão
+        // await Estacionamento.destroy({ where: {}, truncate: false });
+        // await Veiculo.destroy({ where: {}, truncate: false });
+        // await Vaga.destroy({ where: {}, truncate: false });
+        // await Aluno.destroy({ where: {}, truncate: false });
+        // await Docente.destroy({ where: {}, truncate: false });
+        // await Usuario.destroy({ where: { email: { [Op.ne]: 'admin@exemplo.com' } } }); // Não deletar admin padrão
         console.log('Tabelas limpas.');
 
         // --- Criar Usuários Padrão (se não existirem) ---
         console.log('Criando usuários padrão (admin/porteiro)...');
         const adminSenhaHash = await bcrypt.hash('admin123', 10);
         const porteiroSenhaHash = await bcrypt.hash('porteiro123', 10);
-
+       
         const [adminUser, adminCreated] = await Usuario.findOrCreate({
             where: { email: 'admin@exemplo.com' },
             defaults:
@@ -114,7 +114,7 @@ const seedDatabase = async () => {
             ativa: true,
             data_cadastro: faker.date.past({ years: 1 })
         }));
-        await Vaga.bulkCreate(vagasData);
+        // await Vaga.bulkCreate(vagasData);
         console.log(`${totalVagas} vagas criadas.`);
 
         // --- Seed Docentes (30) ---
@@ -131,7 +131,7 @@ const seedDatabase = async () => {
             ativo: true,
             data_cadastro: faker.date.past({ years: 2 })
         }));
-        const docentesCriados = await Docente.bulkCreate(docentesData);
+        // const docentesCriados = await Docente.bulkCreate(docentesData);
         console.log(`${totalDocentes} docentes criados.`);
 
         // --- Seed Alunos (300: 100 por turno) ---
@@ -152,8 +152,8 @@ const seedDatabase = async () => {
                 ativo: true,
                 data_cadastro: faker.date.past({ years: 3 })
             }));
-            const alunosDoTurno = await Aluno.bulkCreate(alunosData);
-            alunosCriados.push(...alunosDoTurno);
+            // const alunosDoTurno = await Aluno.bulkCreate(alunosData);
+            // alunosCriados.push(...alunosDoTurno);
             console.log(`${totalAlunosPorTurno} alunos do turno ${turno} criados.`);
         }
         console.log(`${alunosCriados.length} alunos criados no total.`);
@@ -161,24 +161,24 @@ const seedDatabase = async () => {
         // --- Seed Veículos Docentes (1-2 por docente) ---
         console.log('Criando veículos para docentes...');
         const placasExistentes = new Set<string>();
-        const veiculosDocenteData = [];
-        for (const docente of docentesCriados) {
-            const numVeiculos = faker.number.int({ min: 1, max: 2 });
-            const placas = gerarPlacasUnicas(numVeiculos, placasExistentes);
-            for (const placa of placas) {
-                veiculosDocenteData.push({
-                    placa: placa,
-                    modelo: `${faker.vehicle.manufacturer()} ${faker.vehicle.model()}`,
-                    cor: faker.vehicle.color(),
-                    docenteId: docente.id,
-                    alunoId: null,
-                    ativo: true,
-                    data_cadastro: faker.date.between({ from: docente.data_cadastro, to: new Date() })
-                });
-            }
-        }
-        await Veiculo.bulkCreate(veiculosDocenteData);
-        console.log(`${veiculosDocenteData.length} veículos de docentes criados.`);
+        // const veiculosDocenteData = [];
+        // for (const docente of docentesCriados) {
+        //     const numVeiculos = faker.number.int({ min: 1, max: 2 });
+        //     const placas = gerarPlacasUnicas(numVeiculos, placasExistentes);
+        //     for (const placa of placas) {
+        //         veiculosDocenteData.push({
+        //             placa: placa,
+        //             modelo: `${faker.vehicle.manufacturer()} ${faker.vehicle.model()}`,
+        //             cor: faker.vehicle.color(),
+        //             docenteId: docente.id,
+        //             alunoId: null,
+        //             ativo: true,
+        //             data_cadastro: faker.date.between({ from: docente.data_cadastro, to: new Date() })
+        //         });
+        //     }
+        // }
+        // await Veiculo.bulkCreate(veiculosDocenteData);
+        // console.log(`${veiculosDocenteData.length} veículos de docentes criados.`);
 
         // --- Seed Veículos Alunos (1-2 para 50 por turno) ---
         console.log('Criando veículos para alunos...');
@@ -205,7 +205,7 @@ const seedDatabase = async () => {
                 }
             }
         }
-        await Veiculo.bulkCreate(veiculosAlunoData);
+        // await Veiculo.bulkCreate(veiculosAlunoData);
         console.log(`${veiculosAlunoData.length} veículos de alunos criados.`);
 
         console.log('Seed concluído com sucesso!');

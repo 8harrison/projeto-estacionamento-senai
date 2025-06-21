@@ -132,7 +132,7 @@ router.use(authenticateToken);
  *       500:
  *         description: Erro interno do servidor.
  */
-router.post('/entrada', authorizeRole(['administrador', 'porteiro']), estacionamentoController.registrarEntrada);
+router.post('/entrada', authorizeRole(['administrador', 'porteiro', 'master']), estacionamentoController.registrarEntrada);
 
 /**
  * @swagger
@@ -173,7 +173,7 @@ router.post('/entrada', authorizeRole(['administrador', 'porteiro']), estacionam
  *       500:
  *         description: Erro interno do servidor.
  */
-router.patch('/saida/:id', authorizeRole(['administrador', 'porteiro']), estacionamentoController.registrarSaida);
+router.patch('/saida/:id', authorizeRole(['administrador', 'porteiro', 'master']), estacionamentoController.registrarSaida);
 
 /**
  * @swagger
@@ -228,7 +228,7 @@ router.patch('/saida/:id', authorizeRole(['administrador', 'porteiro']), estacio
  *       500:
  *         description: Erro interno do servidor.
  */
-router.get('/', authorizeRole(['administrador', 'porteiro']), estacionamentoController.findAll);
+router.get('/', authorizeRole(['administrador', 'porteiro', 'master']), estacionamentoController.findAll);
 
 /**
  * @swagger
@@ -255,7 +255,7 @@ router.get('/', authorizeRole(['administrador', 'porteiro']), estacionamentoCont
  *       500:
  *         description: Erro interno do servidor.
  */
-router.get('/ativos', authorizeRole(['administrador', 'porteiro']), estacionamentoController.findActive);
+router.get('/ativos', authorizeRole(['administrador', 'porteiro', 'master']), estacionamentoController.findActive);
 
 /**
  * @swagger
@@ -291,7 +291,7 @@ router.get('/ativos', authorizeRole(['administrador', 'porteiro']), estacionamen
  *       500:
  *         description: Erro interno do servidor.
  */
-router.get('/:id', authorizeRole(['administrador', 'porteiro']), estacionamentoController.findById);
+router.get('/:id', authorizeRole(['administrador', 'porteiro', 'master']), estacionamentoController.findById);
 
 export default router;
 

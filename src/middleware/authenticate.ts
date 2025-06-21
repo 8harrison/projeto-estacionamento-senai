@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import { DefaultEventsMap, Server } from 'socket.io';
 
 dotenv.config();
 
@@ -17,6 +18,7 @@ declare global {
   namespace Express {
     interface Request {
       usuario?: { id: number; role: string };
+      io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>
     }
   }
 }

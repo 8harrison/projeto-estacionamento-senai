@@ -1,8 +1,10 @@
+import { WhereOptions } from 'sequelize';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import Usuario from '../models/Usuario';
 import { UsuarioAttributes, UsuarioCreationAttributes } from '../models/Usuario'; // Importar interfaces
 import dotenv from 'dotenv';
+import { Op } from 'sequelize';
 
 dotenv.config();
 
@@ -37,7 +39,7 @@ export class AuthService {
         role: usuario.role,
       };
 
-      const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1h' }); // Token expira em 1 hora
+      const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '4h' }); // Token expira em 1 hora
 
       console.log(`Login bem-sucedido para o email ${email}`);
       return {
@@ -76,18 +78,76 @@ export class AuthService {
         throw new Error(`Erro: Email '${data.email}' já está em uso.`);
       }
       if (error.message.includes('Role inválida')) {
-          throw new Error(error.message);
+        throw new Error(error.message);
       }
       throw new Error('Erro no serviço ao registrar novo usuário.');
     }
   }
 
   public async getAllUsers(): Promise<Omit<UsuarioAttributes, 'senha_hash'>[]> {
-    const users = await Usuario.findAll()
+    const users = await Usuario.findAll({
+      where: {
+        [Op.or]: [{ role: 'administrador' }, { role: 'porteiro' }]
+      }
+    })
     return users.map(user => {
-      const {senha_hash, ...usuario_sem_senha} = user.get({plain: true})
+      const { senha_hash, ...usuario_sem_senha } = user.get({ plain: true })
       return usuario_sem_senha
     })
+  }
+
+  public async getAllPorteiros(): Promise<Omit<UsuarioAttributes, 'senha_hash'>[]> {
+    const users = await Usuario.findAll({
+      where: {
+        [Op.or]: [{ role: 'porteiro' }]
+      }
+    })
+    return users.map(user => {
+      const { senha_hash, ...usuario_sem_senha } = user.get({ plain: true })
+      return usuario_sem_senha
+    })
+  }
+
+  public async updateUserAsPorteiro(id: number, data: UsuarioCreationAttributes): Promise<Omit<UsuarioAttributes, 'senha_hash'> | null> {
+    try {
+      const usuario = await Usuario.findByPk(id);
+      if (!usuario) {
+        return null;
+      }
+      await usuario.update(data)
+      const usuarioAtualizado = await Usuario.findByPk(id)
+      return usuarioAtualizado
+    } catch (error: any) {
+      console.error(`Erro ao atualizar Usuário por ID ${id}:`, error);
+      if (error.name === 'SequelizeUniqueConstraintError') {
+        throw new Error(`Erro: Email '${data.email}' já existe.`);
+      }
+      if (error.message.includes("Atualização inválida")) {
+        throw new Error(error.message);
+      }
+      throw new Error("Erro no serviço ao atualizar usuário.");
+    }
+  }
+
+  public async updateUserAsAdm(id: number, data: UsuarioCreationAttributes): Promise<Omit<UsuarioAttributes, 'senha_hash'> | null> {
+    try {
+      const usuario = await Usuario.findByPk(id);
+      if (!usuario) {
+        return null;
+      }
+      await usuario.update(data)
+      const usuarioAtualizado = await Usuario.findByPk(id)
+      return usuarioAtualizado
+    } catch (error: any) {
+      console.error(`Erro ao atualizar Usuário por ID ${id}:`, error);
+      if (error.name === 'SequelizeUniqueConstraintError') {
+        throw new Error(`Erro: Email '${data.email}' já existe.`);
+      }
+      if (error.message.includes("Atualização inválida")) {
+        throw new Error(error.message);
+      }
+      throw new Error("Erro no serviço ao atualizar usuário.");
+    }
   }
 }
 

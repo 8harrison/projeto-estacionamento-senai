@@ -176,7 +176,7 @@ const veiculoController = new VeiculoController();
  *       500:
  *         description: Erro interno do servidor.
  */
-router.post('/', authenticateToken, authorizeRole(['administrador']), veiculoController.create);
+router.post('/', authenticateToken, authorizeRole(['administrador', 'master']), veiculoController.create);
 
 /**
  * @swagger
@@ -203,7 +203,7 @@ router.post('/', authenticateToken, authorizeRole(['administrador']), veiculoCon
  *       500:
  *         description: Erro interno do servidor.
  */
-router.get('/', authenticateToken, authorizeRole(['administrador', 'porteiro']), veiculoController.findAll);
+router.get('/', authenticateToken, authorizeRole(['administrador', 'porteiro', 'master']), veiculoController.findAll);
 
 /**
  * @swagger
@@ -276,7 +276,7 @@ router.get('/buscar', veiculoController.findByPlacaOrModelo);
  *       500:
  *         description: Erro interno do servidor.
  */
-router.get('/:id',authenticateToken, authorizeRole(['administrador', 'porteiro']), veiculoController.findById);
+router.get('/:id',authenticateToken, authorizeRole(['administrador', 'porteiro', 'master']), veiculoController.findById);
 
 /**
  * @swagger
@@ -320,7 +320,7 @@ router.get('/:id',authenticateToken, authorizeRole(['administrador', 'porteiro']
  *       500:
  *         description: Erro interno do servidor.
  */
-router.put('/:id',authenticateToken, authorizeRole(['administrador']), veiculoController.update);
+router.put('/:id',authenticateToken, authorizeRole(['administrador', 'master']), veiculoController.update);
 
 /**
  * @swagger
@@ -352,7 +352,7 @@ router.put('/:id',authenticateToken, authorizeRole(['administrador']), veiculoCo
  *       500:
  *         description: Erro interno do servidor.
  */
-router.delete('/:id',authenticateToken, authorizeRole(['administrador']), veiculoController.delete);
+router.delete('/:id',authenticateToken, authorizeRole(['administrador', 'master']), veiculoController.delete);
 
 export default router;
 

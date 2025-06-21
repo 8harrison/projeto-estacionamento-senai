@@ -177,10 +177,15 @@ router.post('/login', authController.login);
  *       500:
  *         description: Erro interno do servidor.
  */
-router.post('/register', authenticateToken, authorizeRole(['administrador']), authController.register);
+router.post('/register', authenticateToken, authorizeRole(['administrador', 'master']), authController.register);
 
-router.get('/usuarios', authenticateToken, authorizeRole(['administrador']), authController.getAll)
+router.get('/usuarios', authenticateToken, authorizeRole(['master']), authController.getAll)
 
+router.get('/usuarios/porteiros', authenticateToken, authorizeRole(['master', 'administrador']), authController.getAllPorteiros)
+
+router.put('/usuarios/porteiros/:id', authenticateToken, authorizeRole(['administrador', 'master']), authController.updateUserAsPorteiro)
+
+router.put('/usuarios/administradores/:id', authenticateToken, authorizeRole(['master']), authController.updateUserAsAdm)
 
 // Rota para verificar o token atual (exemplo)
 // router.get('/me', authenticateToken, authController.getMe); // Descomente se precisar desta rota

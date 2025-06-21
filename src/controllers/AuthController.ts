@@ -3,10 +3,10 @@ import { AuthService } from '../services/AuthService';
 import { UsuarioCreationAttributes } from '../models/Usuario'; // Importar interface
 
 // Função wrapper para lidar com erros assíncronos nos controllers
-const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) => 
+const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) =>
   (req: Request, res: Response, next: NextFunction) => {
     Promise.resolve(fn(req, res, next)).catch(next);
-};
+  };
 
 export class AuthController {
   private authService = new AuthService();
@@ -41,8 +41,8 @@ export class AuthController {
 
     // Validação básica de entrada
     if (!userData.nome || !userData.email || !userData.senha || !userData.role) {
-        res.status(400).json({ message: 'Nome, email, senha e role são obrigatórios.' });
-        return;
+      res.status(400).json({ message: 'Nome, email, senha e role são obrigatórios.' });
+      return;
     }
 
     try {
@@ -65,8 +65,78 @@ export class AuthController {
 
       res.status(200).json(usuarios)
       return
-    } catch(e){
-      res.status(500).json({message: 'Erro interno ao buscar usuários.'})
+    } catch (e) {
+      res.status(500).json({ message: 'Erro interno ao buscar usuários.' })
+      return
+    }
+  })
+
+  public getAllPorteiros = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const usuarios = await this.authService.getAllPorteiros()
+
+      res.status(200).json(usuarios)
+      return
+    } catch (e) {
+      res.status(500).json({ message: 'Erro interno ao buscar usuários.' })
+      return
+    }
+  })
+
+  public updateUserAsPorteiro = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) {
+        res.status(400).json({ message: 'ID inválido.' });
+        return
+      }
+      // Adicionar validação dos dados de entrada (req.body) aqui
+      const userData = req.body
+
+      const userAtualizado = await this.authService.updateUserAsPorteiro(+id, userData)
+
+      if (!userAtualizado) {
+        res.status(404).json({ message: 'Usuário não encontrado para atualização.' });
+        return
+      }
+      res.status(200).json(userAtualizado);
+      return
+    } catch (error: any) {
+      console.error('Erro no controller ao atualizar usuário:', error.message);
+      if (error.message.includes('Já existe um registro')) {
+        res.status(409).json({ message: error.message }); // Conflict
+        return
+      }
+      res.status(500).json({ message: 'Erro interno ao atualizar usuário.' });
+      return
+    }
+  })
+
+  public updateUserAsAdm = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) {
+        res.status(400).json({ message: 'ID inválido.' });
+        return
+      }
+      // Adicionar validação dos dados de entrada (req.body) aqui
+      const userData = req.body
+
+      const userAtualizado = await this.authService.updateUserAsAdm(+id, userData)
+
+      if (!userAtualizado) {
+        res.status(404).json({ message: 'Usuário não encontrado para atualização.' });
+        return
+      }
+      res.status(200).json(userAtualizado);
+      return
+    } catch (error: any) {
+      console.error('Erro no controller ao atualizar usuário:', error.message);
+      if (error.message.includes('Já existe um registro')) {
+        res.status(409).json({ message: error.message }); // Conflict
+        return
+      }
+      res.status(500).json({ message: 'Erro interno ao atualizar usuário.' });
       return
     }
   })

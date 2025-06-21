@@ -8,7 +8,7 @@ export interface UsuarioAttributes {
   nome: string;
   email: string;
   senha_hash: string;
-  role: 'porteiro' | 'administrador';
+  role: 'porteiro' | 'administrador' | 'master';
   ativo: boolean;
 }
 
@@ -23,7 +23,7 @@ class Usuario extends Model<UsuarioAttributes, UsuarioCreationAttributes> implem
   public nome!: string;
   public email!: string;
   public senha_hash!: string;
-  public role!: 'porteiro' | 'administrador';
+  public role!: 'porteiro' | 'administrador' | 'master';
   public ativo!: boolean;
 
   // Atributo virtual para senha (não persistido)
@@ -62,7 +62,7 @@ Usuario.init({
     allowNull: false,
   },
   role: {
-    type: DataTypes.ENUM('porteiro', 'administrador'),
+    type: DataTypes.ENUM('porteiro', 'administrador', 'master'),
     allowNull: false,
     defaultValue: 'porteiro',
   },

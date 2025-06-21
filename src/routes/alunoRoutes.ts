@@ -170,7 +170,7 @@ router.use(authenticateToken);
  *       500:
  *         description: Erro interno do servidor.
  */
-router.post('/', authorizeRole(['administrador']), alunoController.create);
+router.post('/', authorizeRole(['administrador', 'master']), alunoController.create);
 
 /**
  * @swagger
@@ -197,7 +197,7 @@ router.post('/', authorizeRole(['administrador']), alunoController.create);
  *       500:
  *         description: Erro interno do servidor.
  */
-router.get('/', authorizeRole(['administrador', 'porteiro']), alunoController.findAll);
+router.get('/', authorizeRole(['administrador', 'porteiro', 'master']), alunoController.findAll);
 
 /**
  * @swagger
@@ -233,7 +233,7 @@ router.get('/', authorizeRole(['administrador', 'porteiro']), alunoController.fi
  *       500:
  *         description: Erro interno do servidor.
  */
-router.get('/:id', authorizeRole(['administrador', 'porteiro']), alunoController.findById);
+router.get('/:id', authorizeRole(['administrador', 'porteiro', 'master']), alunoController.findById);
 
 /**
  * @swagger
@@ -277,7 +277,7 @@ router.get('/:id', authorizeRole(['administrador', 'porteiro']), alunoController
  *       500:
  *         description: Erro interno do servidor.
  */
-router.put('/:id', authorizeRole(['administrador']), alunoController.update);
+router.put('/:id', authorizeRole(['administrador', 'master']), alunoController.update);
 
 /**
  * @swagger
@@ -309,7 +309,7 @@ router.put('/:id', authorizeRole(['administrador']), alunoController.update);
  *       500:
  *         description: Erro interno do servidor.
  */
-router.delete('/:id', authorizeRole(['administrador']), alunoController.delete);
+router.delete('/:id', authorizeRole(['administrador', 'master']), alunoController.delete);
 
 export default router;
 
