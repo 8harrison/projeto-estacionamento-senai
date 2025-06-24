@@ -130,7 +130,10 @@ export class VeiculoController {
     try {
       const  query  = req.query.termo
       const veiculo = await veiculoService.findByPlacaOrModelo(query as string)
-      if (!veiculo) {
+      
+      if (!veiculo || veiculo.length == 0) {
+        const error = {message: 'Veículo não encontrado.', placa: query}
+        req.io.emit('resultado-placa', {error})
         res.status(404).json({ message: 'Veículo não encontrado.' });
         return
       }
