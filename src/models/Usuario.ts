@@ -7,7 +7,7 @@ export interface UsuarioAttributes {
   id: number;
   nome: string;
   email: string;
-  senha_hash: string;
+  senha_hash?: string;
   role: 'porteiro' | 'administrador' | 'master';
   ativo: boolean;
   senha?: string
@@ -23,7 +23,7 @@ class Usuario extends Model<UsuarioAttributes, UsuarioCreationAttributes> implem
   public id!: number;
   public nome!: string;
   public email!: string;
-  public senha_hash!: string;
+  public senha_hash?: string;
   public role!: 'porteiro' | 'administrador' | 'master';
   public ativo!: boolean;
 
@@ -37,7 +37,7 @@ class Usuario extends Model<UsuarioAttributes, UsuarioCreationAttributes> implem
 
   // Método para verificar senha
   public async checkPassword(senha: string): Promise<boolean> {
-    return bcrypt.compare(senha, this.senha_hash);
+    return bcrypt.compare(senha, this.senha_hash as string);
   }
 }
 
@@ -71,7 +71,7 @@ Usuario.init({
   },
   senha_hash: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
   },
   role: {
     type: DataTypes.ENUM('porteiro', 'administrador', 'master'),
