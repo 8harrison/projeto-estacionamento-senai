@@ -10,6 +10,7 @@ export interface UsuarioAttributes {
   senha_hash: string;
   role: 'porteiro' | 'administrador' | 'master';
   ativo: boolean;
+  senha?: string
 }
 
 // Interface para atributos de criação (senha é obrigatória na criação)
@@ -27,6 +28,7 @@ class Usuario extends Model<UsuarioAttributes, UsuarioCreationAttributes> implem
   public ativo!: boolean;
 
   // Atributo virtual para senha (não persistido)
+  // A definição no init() abaixo é o que realmente o torna funcional
   public senha?: string;
 
   // Timestamps automáticos
@@ -56,6 +58,16 @@ Usuario.init({
     validate: {
       isEmail: true,
     },
+  },
+  // CORREÇÃO: Definindo o atributo virtual para que o Sequelize o reconheça
+  senha: {
+    type: DataTypes.VIRTUAL,
+    allowNull: false, // Opcional, mas bom para garantir que a senha seja sempre enviada na criação
+    validate: {
+        notEmpty: {
+            msg: "O campo de senha não pode estar vazio."
+        }
+    }
   },
   senha_hash: {
     type: DataTypes.STRING,
@@ -93,4 +105,3 @@ Usuario.init({
 });
 
 export default Usuario;
-
