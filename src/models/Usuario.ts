@@ -35,7 +35,7 @@ class Usuario extends Model<UsuarioAttributes, UsuarioCreationAttributes> implem
 
   // Método para verificar senha
   public async checkPassword(senha: string): Promise<boolean> {
-    return bcrypt.compare(senha, this.senha_hash);
+    return bcrypt.compare(senha, this.senha_hash as string);
   }
 }
 
@@ -59,7 +59,7 @@ Usuario.init({
   },
   senha_hash: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
   },
   role: {
     type: DataTypes.ENUM('porteiro', 'administrador', 'master'),
