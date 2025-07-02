@@ -22,7 +22,7 @@ class Usuario extends Model<UsuarioAttributes, UsuarioCreationAttributes> implem
   public id!: number;
   public nome!: string;
   public email!: string;
-  public senha_hash!: string;
+  public senha_hash?: string;
   public role!: 'porteiro' | 'administrador' | 'master';
   public ativo!: boolean;
 
