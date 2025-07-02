@@ -7,7 +7,7 @@ export interface UsuarioAttributes {
   id: number;
   nome: string;
   email: string;
-  senha_hash: string;
+  senha_hash?: string;
   role: 'porteiro' | 'administrador' | 'master';
   ativo: boolean;
 }
